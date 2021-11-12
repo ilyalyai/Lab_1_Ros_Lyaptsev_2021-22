@@ -1,0 +1,4 @@
+string color
+int32 number
+---
+bool result
