@@ -1,4 +1,6 @@
 string color
 int32 number
+int32 bet
 ---
 bool result
+int32 prize

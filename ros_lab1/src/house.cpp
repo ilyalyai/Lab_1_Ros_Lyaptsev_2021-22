@@ -8,10 +8,11 @@ using namespace ros;
 
 bool add(ros_lab1::gambling_table::Request  &req, ros_lab1::gambling_table::Response &res)
 {
-  int user_number = req.number;
+  int32_t user_number = req.number;
   string user_bet = req.color;
-  ROS_INFO("All bets are off!");
-  int winning_number = rand()%37;
+  int32_t user_money_bet = req.bet;
+  ROS_INFO("All bets accepted!");
+  int32_t winning_number = rand()%37;
   string winning_color;
   if(rand()%2 == 0)
     winning_color = "black";
@@ -21,6 +22,9 @@ bool add(ros_lab1::gambling_table::Request  &req, ros_lab1::gambling_table::Resp
     winning_color = "red";
 
   bool is_win = false;
+  int32_t winning_mult = -1;
+
+    ROS_INFO("You're bet:");
 
   if(user_number > 36)
   {
@@ -39,19 +43,28 @@ bool add(ros_lab1::gambling_table::Request  &req, ros_lab1::gambling_table::Resp
                  (winning_number < 19 && user_bet.find("manque") != std::string::npos));
         break;
     }
+    winning_mult = 1;
+    ROS_INFO("%s %i \n", user_bet.c_str(), user_money_bet);
   }
 
   else
+  {
     is_win = (winning_number == user_number) && (winning_color.find(user_number));
+    if(is_win)
+      winning_mult = 35;
+
+    ROS_INFO("%s %i %i \n", user_bet.c_str(), user_number, user_money_bet);
+  }
 
   if (is_win)
     ROS_INFO("Inbelievable! You won!");
   else
     ROS_INFO("You lose...");
 
-  ROS_INFO("Winning combination was %s color, %i", winning_color.c_str(), winning_number);
+  ROS_INFO("Winning combination was %s color, %i \n\n", winning_color.c_str(), winning_number);
 
   res.result = is_win;
+  res.prize = winning_mult * user_money_bet;
   return true;
 }
 

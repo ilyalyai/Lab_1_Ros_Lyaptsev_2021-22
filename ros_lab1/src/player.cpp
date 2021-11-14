@@ -6,11 +6,12 @@
 using namespace std;
 using namespace ros;
 
-pair<string, int> calculateInput(int argc, char **argv)
+pair<string, int32_t> calculateInput(int32_t argc, char **argv)
 {
-  pair<string, int> input;
+  pair<string, int32_t> input;
+  int32_t user_money_bet = atoll(argv[argc-1]);
   string user_bet = argv[1];
-  if(argc == 2)
+  if(argc == 3)
   {
     //Первый случай: ставим чисто на цвет, число тогда вернем 37, потом это поймаем
     if(user_bet.find("black") != std::string::npos ||
@@ -52,31 +53,35 @@ pair<string, int> calculateInput(int argc, char **argv)
 
 int main(int argc, char **argv)
 {
+  int32_t money = 1000;
   //3- цвет и номер, 2- чет/нечет, только цвет
-  if (argc != 3 && argc != 2)
+  if (argc != 4 && argc != 3)
   {
-    ROS_INFO("usage: player <string>color <uint>number");
-    ROS_INFO("player <string>color <uint>number");
-    ROS_INFO("player <string>color");
-    ROS_INFO("player <string>\"odd/even/passe/manque\"");
+    ROS_INFO("usage: player <string>color <uint32_t>number <uint32_t>bet");
+    ROS_INFO("player <string>color <uint32_t>number <uint32_t>bet");
+    ROS_INFO("player <string>color <uint32_t>bet");
+    ROS_INFO("player <string>\"odd/even/passe/manque\" <uint32_t>bet");
     return 1;
   }
 
-  if(argc == 3 && atoll(argv[2]) > 36)
+  if(argc == 4 && atoll(argv[2]) > 36)
   {
-    ROS_INFO("Wrong number: 0 <= number <= 36");
+    ROS_INFO("Wrong number: 0 <= number <= 36\n");
     return 1;
   }
 
-  pair<string, int> input = calculateInput(argc, argv);
+  pair<string, int32_t> input = calculateInput(argc, argv);
 
   if(input.first.empty())
   {
-    ROS_INFO("Sorry, couldn't recognise you're input");
+    ROS_INFO("Sorry, couldn't recognise you're input\n");
     return 1;
   }
 
-  int request_number = input.second;
+  ROS_INFO("All bets are off!");
+  ROS_INFO("Ow, you're new here! Welcome bonus for beginners - 1000 coins!\n");
+
+  int32_t request_number = input.second;
   string request_color = input.first;
 
   //Запуск всех полезных штук, инициализация сервиса для записи значений
@@ -87,53 +92,73 @@ int main(int argc, char **argv)
 
   srv.request.color = request_color;
   srv.request.number = request_number;
+  srv.request.bet = atoll(argv[argc-1]);
 
   while(ok())
   {
     if (client.call(srv))
     {
+      money += srv.response.prize;
       if(srv.response.result)
       {
-        int response = rand()%2;
+        int32_t response = rand()%2;
         string responce_text[3] = {"Remember: the house always wins, maybe it's time to leave?",
                                    "Veni, Vidi, Vici",
                                    "Viva Ros Vegas!"};
         cout << responce_text[response] << endl;
+        cout << "You now have " << money << endl;
+        if(money > 2000)
+        {
+          cout << "NOW GET OUT OF HERE!!!" << endl;
+          return 1;
+        }
       }
       else
       {
-        int response = rand()%2;
+        int32_t response = rand()%2;
         string responce_text[3] = {"The game was rigged from the start!",
                                    "How can a sealed deck be laid out in a different order?!?",
                                    "That's the truth about Las Vegas: we're the only winners. The players don't stand a chance."};
         cout << responce_text[response] << endl;
+        cout << "You now have " << money << endl<< endl;
       }
-      cout << "If you want to play again, input <string>color, enter, <uint>number" << endl;
+      cout << "If you want to play again, input" << endl << "<uint32_t>bet, enter, <string>color, enter, <uint32_t>number" << endl;
       cout << "If you want to throw up you're cards, type \"surrender\"" << endl;
+      string bet;
+      cin >> bet;
+
+      if(bet.find("surrender") != std::string::npos)
+        return 1;
+
+      if(atoll(&bet[0]) == 0)
+      {
+        cout << "Hey, what are you trying to do?!?" << endl;
+        return 1;
+      }
+
+      cout << "Well, on what do you want to bet?" << endl;
+
       string input;
       cin >> input;
-
-      if(input.find("surrender") != std::string::npos)
-        return 1;
 
       argv[1] = &input[0];
 
       cout << "If you want to bet on number, input it, otherwise input \"bet\"" << endl;
-
       cin >> input;
 
       if(input.find("bet") != std::string::npos)
-        argc = 2;
+        argc = 3;
       else
       {
-        argc = 3;
+        argc = 4;
         argv[2] = &input[0];
       }
 
-      pair<string, int> input_pair = calculateInput(argc, argv);
+      pair<string, int32_t> input_pair = calculateInput(argc, argv);
 
       srv.request.color = input_pair.first;
       srv.request.number = input_pair.second;
+      srv.request.bet = atoll(&bet[0]);
     }
     else
     {
