@@ -18,4 +18,13 @@ rosrun ros_lab1 player <color> <number>
 
 ____
 
+# В нашем казино обновление!
+# Теперь ставить можно также только на цвет, чет\нечет и больше/меньше!
+```
+rosrun ros_lab1 player <bet>
+```
+, где ставка- это black/red/green, odd/even, passe/manque
+
+____
+
 # Наслаждайтесь игрой!
