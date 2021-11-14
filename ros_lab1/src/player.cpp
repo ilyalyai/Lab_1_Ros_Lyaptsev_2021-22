@@ -9,7 +9,6 @@ using namespace ros;
 pair<string, int32_t> calculateInput(int32_t argc, char **argv)
 {
   pair<string, int32_t> input;
-  int32_t user_money_bet = atoll(argv[argc-1]);
   string user_bet = argv[1];
   if(argc == 3)
   {
@@ -41,7 +40,8 @@ pair<string, int32_t> calculateInput(int32_t argc, char **argv)
     }
 
   }
-  else if(user_bet.find("black") != std::string::npos ||
+
+    else if(user_bet.find("black") != std::string::npos ||
           user_bet.find("red") != std::string::npos ||
           (user_bet.find("green") != std::string::npos && atoll(argv[2]) == 0))
   {
@@ -49,6 +49,16 @@ pair<string, int32_t> calculateInput(int32_t argc, char **argv)
     input.second = atoll(argv[2]);
   }
   return input;
+}
+
+pair<string, int32_t> calculateInputString(int32_t argc, string*argv)
+{
+  char* argv_new[4];
+  for(int i = 0; i<argc; i++)
+  {
+    argv_new[i] = &(argv[i])[0];
+  }
+  return calculateInput(argc, argv_new);
 }
 
 int main(int argc, char **argv)
@@ -141,7 +151,10 @@ int main(int argc, char **argv)
       string input;
       cin >> input;
 
-      argv[1] = &input[0];
+      string new_bet[4];
+
+      new_bet[0] = "Ilya's casino";
+      new_bet[1] = input;
 
       cout << "If you want to bet on number, input it, otherwise input \"bet\"" << endl;
       cin >> input;
@@ -151,14 +164,16 @@ int main(int argc, char **argv)
       else
       {
         argc = 4;
-        argv[2] = &input[0];
+        new_bet[2] = input;
       }
 
-      pair<string, int32_t> input_pair = calculateInput(argc, argv);
+      pair<string, int32_t> input_pair = calculateInputString(argc, new_bet);
 
       srv.request.color = input_pair.first;
       srv.request.number = input_pair.second;
       srv.request.bet = atoll(&bet[0]);
+
+      ROS_INFO("All bets are off!");
     }
     else
     {

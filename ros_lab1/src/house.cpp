@@ -43,7 +43,8 @@ bool add(ros_lab1::gambling_table::Request  &req, ros_lab1::gambling_table::Resp
                  (winning_number < 19 && user_bet.find("manque") != std::string::npos));
         break;
     }
-    winning_mult = 1;
+    if(is_win)
+      winning_mult = 1;
     ROS_INFO("%s %i \n", user_bet.c_str(), user_money_bet);
   }
 
@@ -61,6 +62,7 @@ bool add(ros_lab1::gambling_table::Request  &req, ros_lab1::gambling_table::Resp
   else
     ROS_INFO("You lose...");
 
+    ROS_INFO("%i", winning_mult);
   ROS_INFO("Winning combination was %s color, %i \n\n", winning_color.c_str(), winning_number);
 
   res.result = is_win;
