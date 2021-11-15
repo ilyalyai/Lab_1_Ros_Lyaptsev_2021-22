@@ -6,6 +6,7 @@
 #include "std_msgs/String.h"
 using namespace std;
 using namespace ros;
+Publisher g_casino_logger;
 
 bool casino(ros_lab1::gambling_table::Request  &req, ros_lab1::gambling_table::Response &res)
 {
@@ -70,13 +71,9 @@ bool casino(ros_lab1::gambling_table::Request  &req, ros_lab1::gambling_table::R
     ROS_INFO("%s %i %i \n", user_bet.c_str(), user_number, user_money_bet);
   }
 
-  NodeHandle n;
-  string topic_name;
-  n.getParam("/casino_topic_name", topic_name);
-  Publisher casino_logger = n.advertise<std_msgs::String>(topic_name, 1000);
   std_msgs::String str;
 
-  //Победа определена, осталось просто вывести всё в сервис, топик и консоль
+  //Победа определена, осталосьнего просто вывести всё в сервис, топик и консоль
   if (is_win)
   {
     string msg = "Inbelievable! You won!";
@@ -92,9 +89,9 @@ bool casino(ros_lab1::gambling_table::Request  &req, ros_lab1::gambling_table::R
 
   //Если вот это вот ЧЕРТ ЕГО ПОБЕРИ НЕОБХОДИМУЮ штуку не делать, то сообщение просто отправится в никуда,
   //потому что паблишер еще не подцепит всех подписчиков
-  while(casino_logger.getNumSubscribers() <= 0){}
+  while(g_casino_logger.getNumSubscribers() <= 0){}
   //По заданию- дополнительно отправляю результат в топик
-  casino_logger.publish(str);
+  g_casino_logger.publish(str);
 
   ROS_INFO("Winning combination was %s color, %i \n\n", winning_color.c_str(), winning_number);
 
@@ -111,6 +108,11 @@ int main(int argc, char **argv)
   string service_name;
   n.getParam("/casino_service_name", service_name);
   ServiceServer service = n.advertiseService(service_name, casino);
+
+  string topic_name;
+  n.getParam("/casino_topic_name", topic_name);
+  g_casino_logger = n.advertise<std_msgs::String>(topic_name, 1000);
+
   ROS_INFO("Welcome to the fabulous ROS casino!");
   spin();
 
