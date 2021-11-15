@@ -6,13 +6,11 @@
 #include "std_msgs/String.h"
 using namespace std;
 using namespace ros;
-Subscriber g_sub;
 
 void printMessage(const std_msgs::String::ConstPtr& msg)
 {
-  ROS_INFO("123");
-  ROS_INFO("By the way, look what i've found: [%s]", msg->data);
-  ROS_INFO("TEST");
+  ROS_INFO("By the way, look what i've found in logs: [%s]", msg->data.c_str());
+  cout<<msg->data;
 }
 
 pair<string, int32_t> calculateInput(int32_t argc, char **argv)
@@ -113,9 +111,7 @@ int main(int argc, char **argv)
   //Ловим также сообщения из топика
   string topic_name;
   n.getParam("/casino_topic_name", topic_name);
-  //Да, да, Ден, ничего не говори
-  g_sub = n.subscribe(topic_name, 1000, printMessage);
-  while(g_sub.getNumPublishers() <= 0){}
+  Subscriber sub = n.subscribe(topic_name, 1000, printMessage);
 
   string service_name;
   n.getParam("/casino_service_name", service_name);
@@ -129,6 +125,7 @@ int main(int argc, char **argv)
   //Аддин, чтобы играть можно было бесконечно
   while(ok())
   {
+    while(sub.getNumPublishers() <= 0){}
     if (client.call(srv))
     {
       money += srv.response.prize;
@@ -153,6 +150,8 @@ int main(int argc, char **argv)
         cout << "You now have " << money << endl<< endl;
 
       }
+      //Поймаем ка мы callback от subscriber'a
+      spinOnce();
 
       if(money > 2000 || money <= 0)
       {
