@@ -112,10 +112,10 @@ int main(int argc, char **argv)
   //Аддин, чтобы играть можно было бесконечно
   while(ok())
   {
-    //Победили
     if (client.call(srv))
     {
       money += srv.response.prize;
+      //Победили
       if(srv.response.result)
       {
         int32_t response = rand()%2;
@@ -124,11 +124,6 @@ int main(int argc, char **argv)
                                    "Viva Ros Vegas!"};
         cout << responce_text[response] << endl;
         cout << "You now have " << money << endl;
-        if(money > 2000)
-        {
-          cout << "NOW GET OUT OF HERE!!!" << endl;
-          return 1;
-        }
       }
       //Проиграли
       else
@@ -140,11 +135,12 @@ int main(int argc, char **argv)
         cout << responce_text[response] << endl;
         cout << "You now have " << money << endl<< endl;
 
-        if(money <= 0)
-        {
-          cout << "NOW GET OUT OF HERE!!!" << endl;
-          return 1;
-        }
+      }
+
+      if(money > 2000 || money <= 0)
+      {
+        cout << "NOW GET OUT OF HERE!!!" << endl;
+        return 1;
       }
 
       //Определю новую ставку

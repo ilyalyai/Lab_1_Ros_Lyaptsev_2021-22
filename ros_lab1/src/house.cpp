@@ -7,7 +7,7 @@
 using namespace std;
 using namespace ros;
 
-bool add(ros_lab1::gambling_table::Request  &req, ros_lab1::gambling_table::Response &res)
+bool casino(ros_lab1::gambling_table::Request  &req, ros_lab1::gambling_table::Response &res)
 {
   int32_t user_number = req.number;
   string user_bet = req.color;
@@ -75,21 +75,27 @@ bool add(ros_lab1::gambling_table::Request  &req, ros_lab1::gambling_table::Resp
   n.getParam("/casino_topic_name", topic_name);
   Publisher casino_logger = n.advertise<std_msgs::String>(topic_name, 1000);
   std_msgs::String str;
+
   //Победа определена, осталось просто вывести всё в сервис, топик и консоль
   if (is_win)
   {
-    ROS_INFO("Inbelievable! You won!");
-
-    //По заданию- дополнительно отправляю результат в топик
-    str.data = "Absolute win!!!";
+    string msg = "Inbelievable! You won!";
+    ROS_INFO(msg.c_str());
+    str.data = msg;
   }
   else
   {
-    ROS_INFO("You lose...");
-    str.data = "Ha-ha-ha, looser!";
+    string msg = "You lose...";
+    ROS_INFO(msg.c_str());
+    str.data = msg;
   }
 
+  //Если вот это вот ЧЕРТ ЕГО ПОБЕРИ НЕОБХОДИМУЮ штуку не делать, то сообщение просто отправится в никуда,
+  //потому что паблишер еще не подцепит всех подписчиков
+  while(casino_logger.getNumSubscribers() <= 0){}
+  //По заданию- дополнительно отправляю результат в топик
   casino_logger.publish(str);
+
   ROS_INFO("Winning combination was %s color, %i \n\n", winning_color.c_str(), winning_number);
 
   res.result = is_win;
@@ -104,7 +110,7 @@ int main(int argc, char **argv)
   NodeHandle n;
   string service_name;
   n.getParam("/casino_service_name", service_name);
-  ServiceServer service = n.advertiseService(service_name, add);
+  ServiceServer service = n.advertiseService(service_name, casino);
   ROS_INFO("Welcome to the fabulous ROS casino!");
   spin();
 
