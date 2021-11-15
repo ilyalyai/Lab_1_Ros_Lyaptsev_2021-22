@@ -42,6 +42,7 @@ ____
 rosrun ros_lab1 player <bet> <how_much>
 ```
 , где ставка- это black/red/green, odd/even, passe/manque
+
 сколько- аналогично денежная сумма
 
 ____
