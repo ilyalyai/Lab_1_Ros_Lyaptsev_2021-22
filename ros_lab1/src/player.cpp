@@ -3,8 +3,17 @@
 #include "ros_lab1/gambling_table.h"
 #include <iostream>
 #include <string>
+#include "std_msgs/String.h"
 using namespace std;
 using namespace ros;
+Subscriber g_sub;
+
+void printMessage(const std_msgs::String::ConstPtr& msg)
+{
+  ROS_INFO("123");
+  ROS_INFO("By the way, look what i've found: [%s]", msg->data);
+  ROS_INFO("TEST");
+}
 
 pair<string, int32_t> calculateInput(int32_t argc, char **argv)
 {
@@ -100,6 +109,14 @@ int main(int argc, char **argv)
   //Запуск всех полезных штук, инициализация сервиса для записи значений
   init(argc, argv, "player");
   NodeHandle n;
+
+  //Ловим также сообщения из топика
+  string topic_name;
+  n.getParam("/casino_topic_name", topic_name);
+  //Да, да, Ден, ничего не говори
+  g_sub = n.subscribe(topic_name, 1000, printMessage);
+  while(g_sub.getNumPublishers() <= 0){}
+
   string service_name;
   n.getParam("/casino_service_name", service_name);
   ServiceClient client = n.serviceClient<ros_lab1::gambling_table>(service_name);
