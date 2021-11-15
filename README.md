@@ -11,10 +11,11 @@ rosrun ros_lab1 house
 ```
 Далее запускаем в казино игрока командой
 ```
-rosrun ros_lab1 player <color> <number>
+rosrun ros_lab1 player <color> <number> <bet>
 ```
 , где цвет- red, black, white
 число- от 0 до 36
+ставка- любое число, большее 0, изначально на счете 1000 монет
 
 ____
 
