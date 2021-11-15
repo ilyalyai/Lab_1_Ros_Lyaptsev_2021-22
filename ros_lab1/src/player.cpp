@@ -63,6 +63,7 @@ pair<string, int32_t> calculateInputString(int32_t argc, string*argv)
 
 int main(int argc, char **argv)
 {
+  //Дадим игроку немного денег, чтобы было на что играть
   int32_t money = 1000;
   //3- цвет и номер, 2- чет/нечет, только цвет
   if (argc != 4 && argc != 3)
@@ -74,12 +75,14 @@ int main(int argc, char **argv)
     return 1;
   }
 
+  //Параметров у нас 3 или 4, но третий- всегда число
   if(argc == 4 && atoll(argv[2]) > 36)
   {
     ROS_INFO("Wrong number: 0 <= number <= 36\n");
     return 1;
   }
 
+  //Это позволит определить, на что поставил игрок, и правильно ли он вообще написал
   pair<string, int32_t> input = calculateInput(argc, argv);
 
   if(input.first.empty())
@@ -95,17 +98,21 @@ int main(int argc, char **argv)
   string request_color = input.first;
 
   //Запуск всех полезных штук, инициализация сервиса для записи значений
-  init(argc, argv, "house");
+  init(argc, argv, "player");
   NodeHandle n;
-  ServiceClient client = n.serviceClient<ros_lab1::gambling_table>("gambling_table");
+  string service_name;
+  n.getParam("/casino_service_name", service_name);
+  ServiceClient client = n.serviceClient<ros_lab1::gambling_table>(service_name);
   ros_lab1::gambling_table srv;
 
   srv.request.color = request_color;
   srv.request.number = request_number;
   srv.request.bet = atoll(argv[argc-1]);
 
+  //Аддин, чтобы играть можно было бесконечно
   while(ok())
   {
+    //Победили
     if (client.call(srv))
     {
       money += srv.response.prize;
@@ -123,6 +130,7 @@ int main(int argc, char **argv)
           return 1;
         }
       }
+      //Проиграли
       else
       {
         int32_t response = rand()%2;
@@ -131,7 +139,15 @@ int main(int argc, char **argv)
                                    "That's the truth about Las Vegas: we're the only winners. The players don't stand a chance."};
         cout << responce_text[response] << endl;
         cout << "You now have " << money << endl<< endl;
+
+        if(money <= 0)
+        {
+          cout << "NOW GET OUT OF HERE!!!" << endl;
+          return 1;
+        }
       }
+
+      //Определю новую ставку
       cout << "If you want to play again, input" << endl << "<uint32_t>bet, enter, <string>color, enter, <uint32_t>number" << endl;
       cout << "If you want to throw up you're cards, type \"surrender\"" << endl;
       string bet;
@@ -180,6 +196,5 @@ int main(int argc, char **argv)
       ROS_ERROR("How dare you break my casino!");
       return 1;
     }
-
   }
 }

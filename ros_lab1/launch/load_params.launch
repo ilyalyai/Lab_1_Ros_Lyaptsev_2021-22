@@ -1,0 +1,4 @@
+<launch>
+  <rosparam command="load" file="$(find ros_lab1)/config/params.yaml"/>
+  <node name="house" pkg="ros_lab1" type="house" output="screen" args="call /gazebo/reset_simulation"/>
+</launch>
