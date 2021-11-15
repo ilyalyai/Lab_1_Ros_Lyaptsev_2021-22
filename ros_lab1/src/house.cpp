@@ -62,7 +62,6 @@ bool add(ros_lab1::gambling_table::Request  &req, ros_lab1::gambling_table::Resp
   else
     ROS_INFO("You lose...");
 
-    ROS_INFO("%i", winning_mult);
   ROS_INFO("Winning combination was %s color, %i \n\n", winning_color.c_str(), winning_number);
 
   res.result = is_win;
