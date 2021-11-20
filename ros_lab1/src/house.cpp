@@ -76,7 +76,7 @@ bool casino(ros_lab1::gambling_table::Request  &req, ros_lab1::gambling_table::R
   //Победа определена, осталосьнего просто вывести всё в сервис, топик и консоль
   if (is_win)
   {
-    string msg = "Inbelievable! You won!";
+    string msg = "Unbelievable! You won!";
     ROS_INFO(msg.c_str());
     str.data = msg;
   }

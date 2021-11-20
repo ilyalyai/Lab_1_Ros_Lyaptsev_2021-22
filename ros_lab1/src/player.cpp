@@ -9,7 +9,7 @@ using namespace ros;
 
 void printMessage(const std_msgs::String::ConstPtr& msg)
 {
-  ROS_INFO("By the way, look what i've found in logs: [%s]", msg->data.c_str());
+  ROS_INFO("By the way, look what i've found in logs: \n[%s]\n\n", msg->data.c_str());
   cout<<msg->data;
 }
 
@@ -19,6 +19,13 @@ pair<string, int32_t> calculateInput(int32_t argc, char **argv)
   string user_bet = argv[1];
   if(argc == 3)
   {
+    //Если 3 параметра, то последний- ставка > 0
+    if(atoll(argv[2]) <= 0)
+    {
+      ROS_INFO("Wrong bet: it must be > 0 \n");
+      return input;
+    }
+
     //Первый случай: ставим чисто на цвет, число тогда вернем 37, потом это поймаем
     if(user_bet.find("black") != std::string::npos ||
        user_bet.find("green") != std::string::npos ||
@@ -48,10 +55,18 @@ pair<string, int32_t> calculateInput(int32_t argc, char **argv)
 
   }
 
-    else if(user_bet.find("black") != std::string::npos ||
+  else if(user_bet.find("black") != std::string::npos ||
           user_bet.find("red") != std::string::npos ||
           (user_bet.find("green") != std::string::npos && atoll(argv[2]) == 0))
   {
+    //Если 4 параметра, то третий- 36 >= число => 0, а последний- ставка > 0 
+    if(atoll(argv[3]) < 0 || atoll(argv[2]) < 0 || atoll(argv[2]) > 36)
+    {
+      ROS_INFO("Wrong number or bet: bet > 0 \n");
+      ROS_INFO("              36 >= numbert >= 0 \n");
+      return input;
+    }
+
     input.first = user_bet;
     input.second = atoll(argv[2]);
   }
@@ -79,13 +94,6 @@ int main(int argc, char **argv)
     ROS_INFO("player <string>color <uint32_t>number <uint32_t>bet");
     ROS_INFO("player <string>color <uint32_t>bet");
     ROS_INFO("player <string>\"odd/even/passe/manque\" <uint32_t>bet");
-    return 1;
-  }
-
-  //Параметров у нас 3 или 4, но третий- всегда число
-  if(argc == 4 && atoll(argv[2]) > 36)
-  {
-    ROS_INFO("Wrong number: 0 <= number <= 36\n");
     return 1;
   }
 
@@ -168,7 +176,7 @@ int main(int argc, char **argv)
       if(bet.find("surrender") != std::string::npos)
         return 1;
 
-      if(atoll(&bet[0]) == 0)
+      if(atoll(&bet[0]) <= 0)
       {
         cout << "Hey, what are you trying to do?!?" << endl;
         return 1;
@@ -184,18 +192,30 @@ int main(int argc, char **argv)
       new_bet[0] = "Ilya's casino";
       new_bet[1] = input;
 
-      cout << "If you want to bet on number, input it, otherwise input \"bet\"" << endl;
-      cin >> input;
+      vector<string> posible_bets = {"red", "black"};
 
-      if(input.find("bet") != std::string::npos)
-        argc = 3;
-      else
+      if(find(posible_bets.begin(), posible_bets.end(), input) != posible_bets.end())
       {
-        argc = 4;
-        new_bet[2] = input;
-      }
+        cout << "If you want to bet on number, input it, otherwise input \"bet\"" << endl;
+        cin >> input;
+
+        if(input.find("bet") != std::string::npos)
+          argc = 3;
+        else
+        {
+          argc = 4;
+          new_bet[2] = input;
+        }
+      }     
 
       pair<string, int32_t> input_pair = calculateInputString(argc, new_bet);
+
+      if(input_pair.first.empty())
+      {
+        ROS_INFO("Sorry, couldn't recognise you're input\n");
+        return 1;
+      }
+
 
       srv.request.color = input_pair.first;
       srv.request.number = input_pair.second;
